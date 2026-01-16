@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<ruleset name="Loja Coding Standard">
+    <description>Padrões de código para o projeto Loja</description>
+
+    <!-- Diretórios a verificar -->
+    <file>./controllers</file>
+    <file>./models</file>
+    <file>./services</file>
+    <file>./lib</file>
+
+    <!-- Excluir vendor -->
+    <exclude-pattern>./vendor/*</exclude-pattern>
+    <exclude-pattern>./tests/*</exclude-pattern>
+
+    <!-- Usar PSR-12 como base -->
+    <rule ref="PSR12">
+        <!-- Exceções para compatibilidade com Zend Framework 1 -->
+        <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
+        <exclude name="PSR12.Files.FileHeader.IncorrectOrder"/>
+    </rule>
+
+    <!-- Regras adicionais -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="150"/>
+        </properties>
+    </rule>
+
+    <!-- Verificar código morto -->
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+    
+    <!-- Evitar variáveis não utilizadas -->
+    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable">
+        <severity>0</severity><!-- Desabilitado pois requer pacote extra -->
+    </rule>
+
+    <!-- Report width -->
+    <arg name="report-width" value="120"/>
+    
+    <!-- Mostrar progresso -->
+    <arg value="sp"/>
+    
+    <!-- Cores -->
+    <arg name="colors"/>
+</ruleset>

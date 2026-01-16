@@ -14,5 +14,9 @@ $objDb = new Zend_Config_Ini($arqIni, 'general');
 # Model - Zend
 $objModel = Zend_Db::factory($objDb->db->adapter, $objDb->db->config->toArray());
 
+// Garantir charset UTF-8 na conexão
+$objModel->query("SET NAMES utf8mb4");
+$objModel->query("SET CHARACTER SET utf8mb4");
+
 Zend_Db_Table::setDefaultAdapter($objModel);
 Zend_Registry::set('db', $objModel);

@@ -13,6 +13,6 @@ trait AjaxTrait
         $this->getResponse()
             ->setHttpResponseCode($code)
             ->setHeader("Content-Type", "application/json;charset=" . $charset)
-            ->setBody(\Zend_Json_Encoder::encode($data));
+            ->setBody(json_encode($data, JSON_UNESCAPED_UNICODE));
     }
 }
