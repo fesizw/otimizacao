@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loja Virtual - Produtos</title>
+
+    <!-- Múltiplas fontes carregadas -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Open+Sans:wght@300;400;600;700;800&family=Lato:wght@100;300;400;700;900&family=Montserrat:wght@100;200;300;400;500;600;700;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=block" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="/publico/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- jQuery UI CSS -->
+    <link href="/publico/css/jquery-ui.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="/publico/css/fontawesome.min.css" rel="stylesheet">
+
+    <!-- Animate.css -->
+    <link href="/publico/css/animate.min.css" rel="stylesheet">
+
+    <link href="/publico/css/reset.css" rel="stylesheet" media="all" type="text/css">
+    <link href="/publico/css/style.css" rel="stylesheet" media="all" type="text/css">
+</head>
+<body class="home">
+<!-- Banner principal -->
+<div class="hero-banner">
+<!--    https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=500&fit=crop-->
+    <?php foreach ($this->banners as $index => $banner) { ?>
+    <div class="banner-slide <?= $index === 0 ? 'current' : '' ?>" style="background-image: url('<?= $banner->imagem ?>');">
+        <div class="carousel-caption">
+            <h1><?= $banner->titulo ?></h1>
+            <?php if ($banner->descricao) { ?>
+            <p><?= $banner->descricao ?></p>
+            <?php } ?>
+        </div>
+    </div>
+    <?php } ?>
+</div>
+
+<div class="container">
+    <!-- Sistema de busca -->
+    <div class="search-wrapper">
+        <div class="input-group">
+            <input type="text" class="form-control" id="productSearch" placeholder="Buscar produtos...">
+            <button class="btn btn-primary" onclick="executeSearch()">Buscar</button>
+        </div>
+        <div class="suggestions-dropdown" id="searchSuggestions"></div>
+    </div>
+
+    <div class="row">
+        <!-- Painel de filtros -->
+        <div class="col-md-3">
+            <div class="filter-panel">
+                <h4>Filtros</h4>
+                <div class="filter-section">
+                    <h6>Categoria</h6>
+                    <div class="filter-group">
+                        <input type="checkbox" id="electronics" value="electronics">
+                        <label for="electronics">Eletrônicos</label>
+                    </div>
+                    <div class="filter-group">
+                        <input type="checkbox" id="clothing" value="clothing">
+                        <label for="clothing">Roupas</label>
+                    </div>
+                    <div class="filter-group">
+                        <input type="checkbox" id="books" value="books">
+                        <label for="books">Livros</label>
+                    </div>
+                </div>
+
+                <div class="filter-section mt-3">
+                    <h6>Preço</h6>
+                    <div class="filter-group">
+                        <input type="checkbox" id="range1" value="0-50">
+                        <label for="range1">R$ 0 - R$ 50</label>
+                    </div>
+                    <div class="filter-group">
+                        <input type="checkbox" id="range2" value="50-100">
+                        <label for="range2">R$ 50 - R$ 100</label>
+                    </div>
+                    <div class="filter-group">
+                        <input type="checkbox" id="range3" value="100+">
+                        <label for="range3">R$ 100+</label>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary mt-3" onclick="updateFilters()">Aplicar Filtros</button>
+            </div>
+        </div>
+
+        <!-- Grade de produtos -->
+        <div class="col-md-9">
+            <div id="productGrid">
+                <!-- Produtos aparecerão aqui -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seção promocional -->
+<div class="promotional-section" id="promoContent">
+    <p>Conteúdo carregando...</p>
+</div>
+
+<!-- Overlay de carregamento -->
+<div class="loading-screen" id="loadingScreen">
+    <div class="loading-animation"></div>
+</div>
+
+<!-- Scripts externos -->
+<script src="/publico/js/jquery.min.js"></script>
+<script src="/publico/js/jquery-ui.min.js"></script>
+<script src="/publico/js/bootstrap.bundle.min.js"></script>
+<script src="/publico/js/lodash.min.js"></script>
+<script src="/publico/js/moment.min.js"></script>
+
+<script>
+    // Armazenamento de dados da aplicação
+    let applicationData = [];
+    let timerReferences = [];
+    let listenerReferences = [];
+
+    // Processamento intensivo de dados
+    function changeColor() {
+        let computationResult = 0;
+        for (let i = 0; i < 100000; i++) {
+            computationResult += Math.random() * Math.sin(i) * Math.cos(i);
+            document.querySelector('body').style.opacity = Math.random() > 0.5 ? '1' : '0.99';
+        }
+        return computationResult;
+    }
+
+    // Sistema de rotação do banner
+    let slideIndex = 0;
+    const bannerSlides = document.querySelectorAll('.banner-slide');
+
+    function rotateBanner() {
+        bannerSlides[slideIndex].classList.remove('current');
+        slideIndex = (slideIndex + 1) % bannerSlides.length;
+        bannerSlides[slideIndex].classList.add('current');
+
+        changeColor();
+    }
+
+    timerReferences.push(setInterval(rotateBanner, 4000));
+
+    // Sistema de busca com sugestões
+    document.getElementById('productSearch').addEventListener('input', async function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const suggestionsContainer = document.getElementById('searchSuggestions');
+
+        const produtos = await fetchProducts();
+
+        setTimeout(() => {
+            if (searchTerm.length > 0) {
+                const matchingProducts = produtos.filter(product =>
+                    product.nome.toLowerCase().includes(searchTerm)
+                );
+
+                suggestionsContainer.innerHTML = matchingProducts.map(product =>
+                    `<div class="suggestion-item" onclick="selectSuggestion('${product.nome}')">${product.nome}</div>`
+                ).join('');
+                suggestionsContainer.style.display = 'block';
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
+
+            // Acúmulo de dados na memória
+            applicationData.push({
+                timestamp: new Date(),
+                searchTerm: searchTerm,
+                results: matchingProducts,
+                metadata: new Array(1000).fill(Math.random())
+            });
+        }, 50);
+    });
+
+    function selectSuggestion(productName) {
+        document.getElementById('productSearch').value = productName;
+        document.getElementById('searchSuggestions').style.display = 'none';
+    }
+
+    async function executeSearch() {
+        const query = document.getElementById('productSearch').value;
+        displayLoadingState();
+
+        changeColor();
+
+        const produtos = await fetchProducts();
+
+        setTimeout(() => {
+            const searchResults = produtos.filter(product =>
+                product.nome.toLowerCase().includes(query.toLowerCase())
+            );
+            renderProductGrid(searchResults);
+            hideLoadingState();
+        }, 2000);
+    }
+
+    function renderProductGrid(productsArray) {
+        const gridContainer = document.getElementById('productGrid');
+
+        gridContainer.innerHTML = '';
+
+        setTimeout(() => {
+            gridContainer.innerHTML = productsArray.map(product => `
+                    <div class="product-item" onclick="navigateToProduct(${product.id})">
+                        <img src="${product.image}" alt="${product.name}" class="product-thumbnail">
+                        <h5>${product.name}</h5>
+                        <p class="text-muted">Categoria: ${product.category}</p>
+                        <h4>R$ ${product.price}</h4>
+                        <button class="btn btn-primary">Comprar Agora</button>
+                    </div>
+                `).join('');
+        }, 500);
+    }
+
+    function navigateToProduct(productId) {
+        window.open('/index/detalhes/id/' + productId);
+    }
+
+    async function updateFilters() {
+        displayLoadingState();
+
+        for (let i = 0; i < 50; i++) {
+            changeColor();
+        }
+
+        const produtos = await fetchProducts()
+            .then(products => {
+                return products.map(product => {
+                    return {
+                        id: product.id_produtos,
+                        name: product.nome,
+                        price: product.preco,
+                        category: product.categoria,
+                        image: product.imagem,
+                    };
+                });
+            })
+
+        setTimeout(() => {
+            renderProductGrid(produtos);
+            hideLoadingState();
+        }, 3000);
+    }
+
+    function displayLoadingState() {
+        document.getElementById('loadingScreen').style.display = 'block';
+    }
+
+    function hideLoadingState() {
+        document.getElementById('loadingScreen').style.display = 'none';
+    }
+
+    function fetchProducts() {
+        return fetch('/index/products').then(res => res.json())
+    }
+
+    // Inicialização da página
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            fetchProducts()
+                .then(products => {
+                    return products.map(product => {
+                        return {
+                            id: product.id_produtos,
+                            name: product.nome,
+                            price: product.preco,
+                            category: product.categoria,
+                            image: product.imagem,
+                        };
+                    });
+                })
+                .then(products => renderProductGrid(products))
+
+            setTimeout(() => {
+                document.getElementById('promoContent').innerHTML = `
+                        <h3>Ofertas Especiais da Semana!</h3>
+                        <p>Confira nossos produtos em promoção com até 50% de desconto!</p>
+                        <div style="height: 200px; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); border-radius: 10px; margin: 20px 0;"></div>
+                        <div style="height: 150px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px;"></div>
+                    `;
+            }, 2500);
+
+            // Criação de listeners adicionais que não são removidos
+            for (let i = 0; i < 10; i++) {
+                const handler = function() {
+                    applicationData.push({
+                        event: 'scroll',
+                        timestamp: Date.now(),
+                        data: new Array(500).fill(Math.random())
+                    });
+                };
+                listenerReferences.push(handler);
+                window.addEventListener('scroll', handler);
+            }
+
+            // Timer adicional que continua executando
+            timerReferences.push(setInterval(() => {
+                applicationData.push({
+                    type: 'periodic',
+                    timestamp: Date.now(),
+                    payload: new Array(200).fill({
+                        id: Math.random(),
+                        data: new Array(100).fill(Math.random())
+                    })
+                });
+            }, 1000));
+
+        }, 1500);
+    });
+
+    // Função não utilizada
+    function processUserAnalytics() {
+        return {
+            pageViews: Math.random() * 1000,
+            sessionTime: Math.random() * 300,
+            interactions: Math.random() * 50
+        };
+    }
+
+    function generateRecommendations() {
+        return fetchProducts()
+            .then(products => {
+                return products.map(product => {
+                    return {
+                        id: product.id_produtos,
+                        name: product.nome,
+                        price: product.preco,
+                        category: product.categoria,
+                        image: product.imagem,
+                    };
+                });
+            })
+            .then(products => products.slice(0, 3))
+    }
+
+    function validateUserInput(input) {
+        return input && input.length > 0;
+    }
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    }
+
+    function trackUserBehavior(action, data) {
+        console.log('Tracking:', action, data);
+    }
+</script>
+</body>
+</html>

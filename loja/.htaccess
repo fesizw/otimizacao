@@ -1,0 +1,4 @@
+Options -Indexes
+ErrorDocument 403 /404.php
+RewriteEngine on
+RewriteRule !\.(gif|png|jpg|webp|css|swf|js|txt|mp4|flv|map|svg|ttf|woff|woff2|html|ico)$ index.php

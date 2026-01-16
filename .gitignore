@@ -1,0 +1,8 @@
+test
+loja/vendor
+loja/erros-php.log
+logs/apache2
+!logs/apache2/.gitkeep
+logs/mysql
+!logs/mysql/.gitkeep
+.idea

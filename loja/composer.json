@@ -1,0 +1,16 @@
+{
+    "scripts": {
+        "test": "AWS_SUPPRESS_PHP_DEPRECATION_WARNING=true phpunit test"
+    },
+    "autoload": {
+        "psr-4": {
+            "Loja\\": "lib/"
+        }
+    },
+    "require": {
+        "zendframework/zendframework1": "^1.12"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.5"
+    }
+}
